@@ -1,9 +1,17 @@
-// src/App.jsx
+// ============================================================
+// 📄 src/App.jsx
+// ============================================================
+// Enrutador principal del sistema SomnoLive.
+// Define las rutas públicas y protegidas (según autenticación).
+// Cumple con el requisito de mostrar un aviso de privacidad
+// accesible desde el menú principal.
+// ============================================================
+
 import React, { useEffect } from "react";
 import { Routes, Route, useNavigate } from "react-router-dom";
 import { setNavigator } from "./shared/navigation";
 
-// Páginas
+// 🧩 Páginas
 import InicioBienvenida from "./pages/InicioBienvenida";
 import MenuPrincipal from "./pages/MenuPrincipal";
 import Detection from "./pages/Detection";
@@ -11,25 +19,30 @@ import Registros from "./pages/Registros";
 import SesionDetalle from "./pages/SesionDetalle";
 import Register from "./pages/Register";
 import Login from "./pages/Login";
+import PrivacidadYSeguridad from "./pages/PrivacidadYSeguridad"; // ✅ NUEVA PÁGINA
 
-// Rutas protegidas
+// 🔒 Rutas protegidas
 import ProtectedRoute from "./routes/ProtectedRoute";
 
 export default function AppWrapper() {
   const navigate = useNavigate();
 
+  // Permite la navegación global desde otros módulos (por ejemplo, AuthContext)
   useEffect(() => {
     setNavigator(navigate);
   }, [navigate]);
 
   return (
     <Routes>
-      {/* Página pública de bienvenida */}
+      {/* 🌐 Rutas públicas */}
       <Route path="/" element={<InicioBienvenida />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
 
-      {/* Página protegida: menú principal tras login */}
+      {/* 📜 Nueva ruta: Aviso de Privacidad y Seguridad */}
+      <Route path="/privacidad" element={<PrivacidadYSeguridad />} />
+
+      {/* 🔐 Rutas protegidas (requieren login) */}
       <Route
         path="/menu"
         element={
@@ -39,7 +52,6 @@ export default function AppWrapper() {
         }
       />
 
-      {/* Resto de rutas protegidas */}
       <Route
         path="/detectar"
         element={
@@ -48,6 +60,7 @@ export default function AppWrapper() {
           </ProtectedRoute>
         }
       />
+
       <Route
         path="/registros"
         element={
@@ -56,6 +69,7 @@ export default function AppWrapper() {
           </ProtectedRoute>
         }
       />
+
       <Route
         path="/registros/:id"
         element={
@@ -64,6 +78,9 @@ export default function AppWrapper() {
           </ProtectedRoute>
         }
       />
+
+      {/* ⚠️ Ruta comodín (opcional): redirigir a inicio si no existe */}
+      <Route path="*" element={<InicioBienvenida />} />
     </Routes>
   );
 }
