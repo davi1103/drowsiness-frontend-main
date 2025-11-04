@@ -1,18 +1,13 @@
-let API_URL = "https://drowsiness-backend-main-production.up.railway.app";
+// ✅ config.js
 
-// Detectar si estamos en entorno de desarrollo Vite (usando import.meta.env)
-let viteApiUrl = undefined;
-try {
-  // Esto solo funcionará en tiempo de ejecución del navegador con Vite
-  viteApiUrl = eval("import.meta.env.VITE_API_URL");
-} catch (e) {
-  // Estamos en entorno de Jest o Node, ignorar
-}
+let API_URL = "";
 
-if (viteApiUrl) {
-  API_URL = viteApiUrl;
-} else if (typeof process !== "undefined" && process.env.VITE_API_URL) {
-  API_URL = process.env.VITE_API_URL;
+// Detectar si estamos en entorno de desarrollo (localhost con Vite)
+if (typeof window !== "undefined" && window.location.hostname === "localhost") {
+  API_URL = "http://localhost:3001";
+} else {
+  // Producción (Vercel)
+  API_URL = import.meta.env.VITE_API_URL || "https://drowsiness-backend-main-production.up.railway.app";
 }
 
 export { API_URL };

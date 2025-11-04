@@ -8,7 +8,7 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     const storedUser = localStorage.getItem("userId");
-    const storedToken = localStorage.getItem("jwt_token"); // Debe coincidir con lo usado en guardarToken
+    const storedToken = localStorage.getItem("jwt_token");
 
     if (storedUser && storedToken) {
       setUserId(storedUser);
@@ -22,10 +22,9 @@ export function AuthProvider({ children }) {
     setToken(tokenValue);
     localStorage.setItem("userId", id);
     localStorage.setItem("jwt_token", tokenValue);
-    console.log("✅ Login exitoso:", id, tokenValue); // <-- AGREGADO
+    console.log(" Login exitoso:", id, tokenValue);
    };
 
-  // Función para cerrar sesión: borra datos del estado y del localStorage
   const logout = () => {
     setUserId(null);
     setToken(null);

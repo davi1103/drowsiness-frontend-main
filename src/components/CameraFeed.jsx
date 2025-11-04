@@ -34,8 +34,7 @@ const CameraFeed = ({ onResults }) => {
     const camera = new Camera(videoRef.current, {
       onFrame: async () => {
         const video = videoRef.current;
-        // Verifica que el video esté completamente cargado
-        if (video && video.readyState === 4) {
+                if (video && video.readyState === 4) {
           await faceMesh.send({ image: video });
         }
       },
