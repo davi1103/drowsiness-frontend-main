@@ -91,13 +91,20 @@ export default function MenuPrincipal() {
         </a>
       </div>
 
-      {/* 🔐 Enlace discreto al Aviso de Privacidad y Seguridad */}
-      <div className="mt-10 text-center">
+      {/* 🔐 Enlaces informativos */}
+      <div className="mt-10 flex flex-col sm:flex-row gap-3 justify-center text-center">
         <Link
           to="/privacidad"
           className="text-slate-300 text-sm hover:text-sky-300 transition-all duration-200"
         >
           🔒 Aviso de Privacidad y Seguridad
+        </Link>
+        <span className="hidden sm:inline text-slate-500">|</span>
+        <Link
+          to="/pautas"
+          className="text-slate-300 text-sm hover:text-green-300 transition-all duration-200"
+        >
+          🌱 Consejos de Uso Sostenible
         </Link>
       </div>
 

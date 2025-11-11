@@ -19,7 +19,8 @@ import Registros from "./pages/Registros";
 import SesionDetalle from "./pages/SesionDetalle";
 import Register from "./pages/Register";
 import Login from "./pages/Login";
-import PrivacidadYSeguridad from "./pages/PrivacidadYSeguridad"; // ✅ NUEVA PÁGINA
+import PrivacidadYSeguridad from "./pages/PrivacidadYSeguridad"; // Privacidad y Seguridad
+import PautasSostenibles from "./pages/PautasSostenibles"; // Pautas 6.1
 
 // 🔒 Rutas protegidas
 import ProtectedRoute from "./routes/ProtectedRoute";
@@ -41,6 +42,9 @@ export default function AppWrapper() {
 
       {/* 📜 Nueva ruta: Aviso de Privacidad y Seguridad */}
       <Route path="/privacidad" element={<PrivacidadYSeguridad />} />
+
+      {/* ♻️ Nueva ruta: Consejos de Uso Sostenible */}
+      <Route path="/pautas" element={<PautasSostenibles />} />
 
       {/* 🔐 Rutas protegidas (requieren login) */}
       <Route
