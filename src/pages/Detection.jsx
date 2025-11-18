@@ -1,13 +1,7 @@
 // ============================================================
 // 📄 PÁGINA: Detection.jsx
 // ============================================================
-// Controla todo el flujo de detección facial en SomnoLive.
-// Ahora incluye un modal de consentimiento obligatorio antes de
-// activar la cámara, cumpliendo con los principios de privacidad.
-//
-// 👁️ Si el usuario acepta → se inicia la cámara y la sesión.
-// 🚫 Si rechaza → se redirige al menú y se muestra mensaje.
-// ============================================================
+
 
 import React, { useState, useEffect } from "react";
 import CameraFeed from "../components/CameraFeed";

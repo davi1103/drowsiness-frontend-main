@@ -1,9 +1,23 @@
+// ============================================================
+// 🧠 HOOK PERSONALIZADO: useSomnolencia.js
+// ------------------------------------------------------------
+// Este hook encapsula toda la lógica principal del sistema de
+// detección de somnolencia:
+//  - Procesamiento de landmarks faciales
+//  - Cálculo de EAR y detección de eventos (bostezos, microsueños, etc.)
+//  - Manejo de sesión y persistencia en BD
+//  - Control de probabilidad y generación de alertas
+//  - Estrategias de eficiencia y sostenibilidad
+// ============================================================
+
 import { useRef, useState } from "react";
 import axios from "axios";
-
 import { API_URL } from "../config";
 
 export function useSomnolencia() {
+  // ============================================================
+  // 🧩 1. Estados principales
+  // ============================================================
   const [probabilidad, setProbabilidad] = useState(0);
   const [parpadeos, setParpadeos] = useState(0);
   const [microsuenos, setMicrosuenos] = useState(0);
@@ -13,24 +27,35 @@ export function useSomnolencia() {
   const [historial, setHistorial] = useState([]);
   const [sesionId, setSesionId] = useState(localStorage.getItem("sesionId"));
 
+  // ============================================================
+  // ⚙️ 2. Parámetros de operación
+  // ============================================================
   const FPS = 30;
   const FRAMES_POR_MINUTO = FPS * 60;
 
+  // ============================================================
+  // 🔁 3. Referencias y cooldowns
+  // (Más eficientes que estados para valores persistentes)
+  // ============================================================
   const cooldownBostezo = useRef(0);
   const cooldownMicrosueno = useRef(0);
   const ojoCerradoDesde = useRef(null);
   const tiempoBocaAbierta = useRef(null);
   const ultimoEventoRef = useRef(Date.now());
   const tiempoInicioRef = useRef(Date.now());
-  const haIniciadoRef = useRef(false); 
+  const haIniciadoRef = useRef(false);
 
+  // Índices de landmarks relevantes
   const puntosOjoIzq = [33, 160, 158, 133, 153, 144];
   const puntosOjoDer = [362, 385, 387, 263, 373, 380];
   const puntosBoca = [13, 14];
 
+  // ============================================================
+  // 🚀 4. CONTROL DE SESIÓN (inicia, persiste, finaliza)
+  // ============================================================
   async function iniciarSesion() {
     if (haIniciadoRef.current) {
-      console.log("🛑 La sesión ya fue iniciada, no se repetirá");
+      console.log("🛑 La sesión ya fue iniciada");
       return;
     }
     haIniciadoRef.current = true;
@@ -46,22 +71,27 @@ export function useSomnolencia() {
       setSesionId(res.data.id);
       localStorage.setItem("sesionId", res.data.id);
       tiempoInicioRef.current = Date.now();
+
     } catch (err) {
       const msg = err.response?.data?.error;
       const idYaActivo = err.response?.data?.id;
 
+      // Reutiliza sesión si ya estaba activa (sostenible y eficiente)
       if (msg === "Ya hay una sesión activa" && idYaActivo) {
-        console.warn("⚠ Ya existe sesión activa. Reutilizando.");
+        console.warn("⚠ Sesión existente reutilizada");
         setSesionId(idYaActivo);
         localStorage.setItem("sesionId", idYaActivo);
         tiempoInicioRef.current = Date.now();
       } else {
         console.error("Error al iniciar sesión:", err);
-        haIniciadoRef.current = false; 
+        haIniciadoRef.current = false;
       }
     }
   }
 
+  // ============================================================
+  // 🧹 Finalizar sesión: limpieza + BD
+  // ============================================================
   async function finalizarSesionBackend(idSesion, eventosRegistrados = []) {
     haIniciadoRef.current = false;
 
@@ -76,15 +106,16 @@ export function useSomnolencia() {
 
       const eventosArray = Array.isArray(eventosRegistrados) ? eventosRegistrados : [];
 
+      // Métricas resumidas para minimizar almacenamiento
       const nivelMax = historial.length > 0
         ? Math.max(...historial.map(h => h.valor))
         : probabilidad;
-
 
       const promedio = eventosArray.length > 0
         ? Math.round(eventosArray.reduce((acc, e) => acc + (e.prob || 0), 0) / eventosArray.length)
         : probabilidad;
 
+      // 🚀 Optimización: solo se guarda lo necesario
       await axios.patch(`${API_URL}/sesiones/${idSesion}/finalizar`, {
         fechaFin,
         duracion,
@@ -97,16 +128,21 @@ export function useSomnolencia() {
         },
       });
 
-      console.log("✅ Sesión finalizada correctamente");
+      console.log("✅ Sesión finalizada");
+
     } catch (error) {
       console.error("❌ Error al finalizar sesión:", error?.response?.data || error);
     }
   }
 
+  // ============================================================
+  // 🔬 5. Funciones matemáticas de análisis
+  // ============================================================
   function distancia(p1, p2) {
     return Math.hypot(p1.x - p2.x, p1.y - p2.y);
   }
 
+  // EAR = Eye Aspect Ratio
   function calcularEAR(puntos) {
     const vertical1 = distancia(puntos[1], puntos[5]);
     const vertical2 = distancia(puntos[2], puntos[4]);
@@ -114,6 +150,9 @@ export function useSomnolencia() {
     return (vertical1 + vertical2) / (2.0 * horizontal);
   }
 
+  // ============================================================
+  // 📦 6. Registro local + BD (eficiente y minimalista)
+  // ============================================================
   function agregarEvento(tipo, cantidad) {
     if (!sesionId) {
       console.warn("⛔ No se puede guardar evento: sesión no iniciada");
@@ -126,8 +165,10 @@ export function useSomnolencia() {
       prob: probabilidad + cantidad,
     };
 
+    // Guardar en memoria local primero
     setEventos(prev => [...prev, evento]);
 
+    // Guardar en BD de manera ligera
     const token = localStorage.getItem("jwt_token");
     if (!token) return;
 
@@ -139,10 +180,13 @@ export function useSomnolencia() {
     }, {
       headers: { Authorization: `Bearer ${token}` }
     }).catch((error) => {
-      console.error("Error al guardar evento en BD:", error);
+      console.error("Error al guardar evento:", error);
     });
   }
 
+  // ============================================================
+  // 📊 7. Gestión de probabilidad (optimizada)
+  // ============================================================
   function aumentarProbabilidad(cantidad) {
     setProbabilidad(prev => {
       const nueva = Math.min(100, prev + cantidad);
@@ -161,6 +205,14 @@ export function useSomnolencia() {
     setFramesSinEventos(0);
   }
 
+  // ============================================================
+  // 🧠 8. Algoritmo principal de análisis de landmarks
+  // ------------------------------------------------------------
+  // Este es el núcleo de la detección. Está optimizado para:
+  //  ✓ CPU
+  //  ✓ Bajo costo energético
+  //  ✓ Decisiones basadas en tiempo y no en IA costosa
+  // ============================================================
   function analizarLandmarks(landmarks) {
     const ahora = Date.now();
     const ojoIzq = puntosOjoIzq.map(i => landmarks[i]);
@@ -174,9 +226,13 @@ export function useSomnolencia() {
     if (cooldownBostezo.current > 0) cooldownBostezo.current--;
     if (cooldownMicrosueno.current > 0) cooldownMicrosueno.current--;
 
+    // -----------------------------------------
+    // 👁️ Microsueños y parpadeos
+    // -----------------------------------------
     if (EAR < 0.21) {
       if (!ojoCerradoDesde.current) ojoCerradoDesde.current = ahora;
       const duracion = ahora - ojoCerradoDesde.current;
+
       if (duracion > 2500 && cooldownMicrosueno.current === 0) {
         aumentarProbabilidad(20);
         agregarEvento("microsueño crítico", 20);
@@ -188,6 +244,7 @@ export function useSomnolencia() {
     } else {
       if (ojoCerradoDesde.current) {
         const duracion = ahora - ojoCerradoDesde.current;
+
         if (duracion >= 800 && cooldownMicrosueno.current === 0) {
           aumentarProbabilidad(12);
           agregarEvento("microsueño moderado", 12);
@@ -203,9 +260,13 @@ export function useSomnolencia() {
       }
     }
 
+    // -----------------------------------------
+    // 😮 Bostezo
+    // -----------------------------------------
     if (aperturaBoca > 0.05 && cooldownBostezo.current === 0) {
       if (!tiempoBocaAbierta.current) tiempoBocaAbierta.current = ahora;
       const duracion = ahora - tiempoBocaAbierta.current;
+
       if (duracion > 400) {
         aumentarProbabilidad(6);
         agregarEvento("bostezo", 6);
@@ -218,12 +279,18 @@ export function useSomnolencia() {
       tiempoBocaAbierta.current = null;
     }
 
+    // -----------------------------------------
+    // ⏱️ Decremento automático si no hay eventos
+    // -----------------------------------------
     const tiempoSinEventos = ahora - ultimoEventoRef.current;
     if (tiempoSinEventos >= 60000 && tiempoSinEventos < 61000) {
       disminuirProbabilidad(4);
       agregarEvento("sin eventos (1min)", -4);
     }
 
+    // -----------------------------------------
+    // 📈 Eventos por minuto
+    // -----------------------------------------
     if (framesSinEventos >= FRAMES_POR_MINUTO) {
       if (parpadeos >= 25) {
         aumentarProbabilidad(2);
@@ -234,6 +301,9 @@ export function useSomnolencia() {
     }
   }
 
+  // ============================================================
+  // 🧼 9. Reset total (limpieza eficiente)
+  // ============================================================
   function reiniciarSesion() {
     setProbabilidad(0);
     setParpadeos(0);
@@ -244,6 +314,8 @@ export function useSomnolencia() {
     setHistorial([]);
     setSesionId(null);
     localStorage.removeItem("sesionId");
+
+    // Reset refs
     ojoCerradoDesde.current = null;
     tiempoBocaAbierta.current = null;
     cooldownBostezo.current = 0;
@@ -257,6 +329,9 @@ export function useSomnolencia() {
     setHistorial([]);
   }
 
+  // ============================================================
+  // 📤 10. Return API del hook
+  // ============================================================
   return {
     probabilidad,
     analizarLandmarks,
