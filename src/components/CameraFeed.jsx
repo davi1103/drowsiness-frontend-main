@@ -23,7 +23,7 @@ const CameraFeed = ({ onResults }) => {
   useEffect(() => {
     if (!videoRef.current) return;
 
-    // ▸ Carga del modelo FaceMesh desde CDN (ligero y eficiente)
+    // ▸ Carga del modelo FaceMesh desde CDN
     const faceMesh = new FaceMesh({
       locateFile: (file) =>
         `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`,

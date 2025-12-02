@@ -10,6 +10,8 @@ import { useNavigate } from "react-router-dom";
 import Alerta from "../components/Alerta";
 import ProbabilidadChart from "../components/ProbabilidadChart";
 import ConsentModal from "../components/ConsentModal";
+import RecomendacionSomnolencia from "../components/RecomendacionSomnolencia";
+
 
 export default function Detection() {
   // Hooks personalizados: análisis de somnolencia
@@ -178,6 +180,9 @@ export default function Detection() {
             </div>
           </div>
 
+          {/* 🆕 Recomendación dinámica */}
+            <RecomendacionSomnolencia probabilidad={probabilidad} />
+          
           {/* Estadísticas rápidas */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full mt-4">
             {[{ label: "Parpadeos", value: parpadeos },
